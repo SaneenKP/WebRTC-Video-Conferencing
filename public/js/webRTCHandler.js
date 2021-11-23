@@ -1,71 +1,102 @@
 import * as wss from "./wss.js";
 import * as constants from "./constants.js";
 import * as ui from "./ui.js";
-import * as store from './store.js'
+import * as store from "./store.js";
 
+let connectedUserDetails;
+let connection;
+let dataChannel;
 
-//WebRTC Handling
-const defaultConstrains = {
-    audio: true,
-    video: true,
-}
+const defaultConstraints = {
+  audio: true,
+  video: true,
+};
+
 const configuration = {
-    iceServers : [
-        {
-            urls: 'stun:stun.l.google.com:13902'
-        }
-    ]
-}
-let peerConnection;
-export const getLocalPreview = () => {
+  iceServers: [
+    {
+      urls: "stun:stun.l.google.com:13902",
+    },
+  ],
+};
 
-    navigator.mediaDevices.getUserMedia(defaultConstrains).then((stream) => {
-        
-        ui.updateLocalVideo(stream)
-        store.setLocalStream(stream)
-    }).catch((err) => {
-        console.log("webRTC Error = " + err);
+export const getLocalPreview = () => {
+  navigator.mediaDevices
+    .getUserMedia(defaultConstraints)
+    .then((stream) => {
+      ui.updateLocalVideo(stream);
+      store.setLocalStream(stream);
     })
-}
+    .catch((err) => {
+      console.log("error occured when trying to get an access to camera");
+      console.log(err);
+    });
+};
 
 const createPeerConnection = () => {
-    peerConnection = new RTCPeerConnection(configuration)
+  connection = new RTCPeerConnection(configuration);
 
-    peerConnection.onicecandidate = (event) => {
-        console.log("getting ice candidate from stun server");
-        if(event.candidate){
-            //send our ice candidate to other peer
-        }
+  dataChannel = connection.createDataChannel("chat");
+
+  connection.ondatachannel = (event) => {
+    const dataChannel = event.channel;
+
+    dataChannel.onopen = () => {
+      console.log("peer connection is ready to receive data channel messages");
+    };
+
+    dataChannel.onmessage = (event) => {
+      console.log("message came from data channel");
+      const message = JSON.parse(event.data);
+      ui.appendMessage(message);
+    };
+  };
+
+  connection.onicecandidate = (event) => {
+    console.log("geeting ice candidates from stun server");
+    if (event.candidate) {
+      // send our ice candidates to other peer
+      wss.sendDataUsingWebRTCSignaling({
+        connectedUserSocketId: connectedUserDetails.socketId,
+        type: constants.webRTCSignaling.ICE_CANDIDATE,
+        candidate: event.candidate,
+      });
     }
+  };
 
-    peerConnection.onconnectionstatechange = (event) => {
-        if(peerConnection.connectionState === 'connected'){
-            console.log("succesffully connectd with other peer");
-        }
+  connection.onconnectionstatechange = (event) => {
+    if (connection.connectionState === "connected") {
+      console.log("succesfully connected with other peer");
     }
+  };
 
-    // receiving tracks
-    const remoteStream = new MediaStream();
-    store.setRemoteStream(remoteStream)
-    ui.updateRemoteVideo(remoteStream)
+  // receiving tracks
+  const remoteStream = new MediaStream();
+  store.setRemoteStream(remoteStream);
+  ui.updateRemoteVideo(remoteStream);
 
-    peerConnection.ontrack = (event) => {
-        remoteStream.addTrack(event.track)
+  connection.ontrack = (event) => {
+    remoteStream.addTrack(event.track);
+  };
+
+  // add our stream to peer connection
+
+  if (
+    connectedUserDetails.callType === constants.callType.VIDEO_PERSONAL_CODE
+  ) {
+    const localStream = store.getState().localStream;
+
+    for (const track of localStream.getTracks()) {
+      connection.addTrack(track, localStream);
     }
-    // add our stream to peer connection
+  }
+};
 
-    if(connectedUserDetails.callType === constants.callType.VIDEO_PERSONAL_CODE){
-        const localStream = store.getState().localStream
-        
-        for(const track of localStream.getTracks()){
-            peerConnection.addTrack(track , localStream)
-        }
+export const sendMessageUsingDataChannel = (message) => {
+  const stringifiedMessage = JSON.stringify(message);
+  dataChannel.send(stringifiedMessage);
+};
 
-    }
-}
-
-//Socket IO Handling
-let connectedUserDetails;
 export const sendPreOffer = (callType, calleePersonalCode) => {
   connectedUserDetails = {
     callType,
@@ -104,9 +135,9 @@ export const handlePreOffer = (data) => {
 
 const acceptCallHandler = () => {
   console.log("call accepted");
-  createPeerConnection()
+  createPeerConnection();
   sendPreOfferAnswer(constants.preOfferAnswer.CALL_ACCEPTED);
-  //ui.showCallElements(connectedUserDetails.callType);
+  ui.showCallElements(connectedUserDetails.callType);
 };
 
 const rejectCallHandler = () => {
@@ -150,40 +181,105 @@ export const handlePreOfferAnswer = (data) => {
 
   if (preOfferAnswer === constants.preOfferAnswer.CALL_ACCEPTED) {
     ui.showCallElements(connectedUserDetails.callType);
-    createPeerConnection()
-    // send webRTC offer
-
-    sendWebRTCOffer()
+    createPeerConnection();
+    sendWebRTCOffer();
   }
 };
 
-//Caller Sending webRTC offer
 const sendWebRTCOffer = async () => {
+  const offer = await connection.createOffer();
+  await connection.setLocalDescription(offer);
+  wss.sendDataUsingWebRTCSignaling({
+    connectedUserSocketId: connectedUserDetails.socketId,
+    type: constants.webRTCSignaling.OFFER,
+    offer: offer,
+  });
+};
 
-    const offer = await peerConnection.createOffer();
-    await peerConnection.setLocalDescription(offer)
-    wss.sendDataUsingWebRTCSignaling({
-        connectedUserSocketId: connectedUserDetails.socketId,
-        type: constants.webRTCSignaling.OFFER,
-        offer: offer
-    })
-}
-
-//Callee  handling webRTC offer
 export const handleWebRTCOffer = async (data) => {
+  await connection.setRemoteDescription(data.offer);
+  const answer = await connection.createAnswer();
+  await connection.setLocalDescription(answer);
+  wss.sendDataUsingWebRTCSignaling({
+    connectedUserSocketId: connectedUserDetails.socketId,
+    type: constants.webRTCSignaling.ANSWER,
+    answer: answer,
+  });
+};
 
-    await peerConnection.setRemoteDescription(data.offer)
-    const answer =  await peerConnection.createAnswer()
-    await peerConnection.setLocalDescription(answer)
-    wss.sendDataUsingWebRTCSignaling({
-        connectedUserSocketId: connectedUserDetails.socketId,
-        type: constants.webRTCSignaling.answer,
-        answer: answer
-    })
+export const handleWebRTCAnswer = async (data) => {
+  console.log("handling webRTC Answer");
+  await connection.setRemoteDescription(data.answer);
+};
 
-}
+export const handleWebRTCCandidate = async (data) => {
+  console.log("handling incoming webRTC candidates");
+  try {
+    await connection.addIceCandidate(data.candidate);
+  } catch (err) {
+    console.error(
+      "error occured when trying to add received ice candidate",
+      err
+    );
+  }
+};
 
-export const handleWebRTCAnswer = async (data) =>{
-    console.log("handling webRTC answer");
-    await peerConnection.setRemoteDescription(data.answer)
-}
+let screenSharingStream;
+
+export const switchBetweenCameraAndScreenSharing = async (
+  screenSharingActive
+) => {
+  if (screenSharingActive) {
+    const localStream = store.getState().localStream;
+    const senders = connection.getSenders();
+
+    const sender = senders.find((sender) => {
+      return sender.track.kind === localStream.getVideoTracks()[0].kind;
+    });
+
+    if (sender) {
+      sender.replaceTrack(localStream.getVideoTracks()[0]);
+    }
+
+    // stop screen sharing stream
+
+    store
+      .getState()
+      .screenSharingStream.getTracks()
+      .forEach((track) => track.stop());
+
+    store.setScreenSharingActive(!screenSharingActive);
+
+    ui.updateLocalVideo(localStream);
+  } else {
+    console.log("switching for screen sharing");
+    try {
+      screenSharingStream = await navigator.mediaDevices.getDisplayMedia({
+        video: true,
+      });
+      store.setScreenSharingStream(screenSharingStream);
+
+      // replace track which sender is sending
+      const senders = connection.getSenders();
+
+      const sender = senders.find((sender) => {
+        return (
+          sender.track.kind === screenSharingStream.getVideoTracks()[0].kind
+        );
+      });
+
+      if (sender) {
+        sender.replaceTrack(screenSharingStream.getVideoTracks()[0]);
+      }
+
+      store.setScreenSharingActive(!screenSharingActive);
+
+      ui.updateLocalVideo(screenSharingStream);
+    } catch (err) {
+      console.error(
+        "error occured when trying to get screen sharing stream",
+        err
+      );
+    }
+  }
+};

@@ -131,6 +131,24 @@ const showVideoCallElements = () => {
   disableDashboard();
 };
 
+//ui call buttons 
+
+
+export const updateMicButton = (micActive) => {
+    const micButtonImage = document.getElementById('mic_button_image')
+    const micOnImagSrc = './utils/images/mic.png'
+    const micOffImagSrc = './utils/images/micOff.png'
+
+    micButtonImage.src =  micActive ? micOffImagSrc : micOnImagSrc
+}
+
+export const updateCameraButton = (cameraActive) => {
+    const cameraOnImagSrc = './utils/images/camera.png'
+    const cameraOffImagSrc = './utils/images/cameraOff.png'
+    const cameraButtonImage = document.getElementById('camera_button_image')
+    cameraButtonImage.src = cameraActive ? cameraOffImagSrc : cameraOnImagSrc
+}
+
 // ui helper functions
 
 const enableDashboard = () => {
@@ -158,3 +176,4 @@ const showElement = (element) => {
     element.classList.remove("display_none");
   }
 };
+
