@@ -230,9 +230,10 @@ export const switchBetweenCameraAndScreenSharing = async (
   screenSharingActive
 ) => {
   if (screenSharingActive) {
+
     const localStream = store.getState().localStream;
     const senders = connection.getSenders();
-
+    
     const sender = senders.find((sender) => {
       return sender.track.kind === localStream.getVideoTracks()[0].kind;
     });

@@ -177,3 +177,19 @@ const showElement = (element) => {
   }
 };
 
+//ui messaging
+
+export const appendMessage = (message , right = false) => {
+    const messagesContainer = document.getElementById('messages_container')
+    const messageElement = right ?  elements.getRightMessage(message) : elements.getLeftMessage(message)
+    messagesContainer.appendChild(messageElement)
+}
+
+export const  clearMessenger = () => {
+    const messageContainer  = document.getElementById('message_container')
+    messageContainer.querySelector('*').forEach((n) =>{
+        n.remove()
+    })
+}
+
+

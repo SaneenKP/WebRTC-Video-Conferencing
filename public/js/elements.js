@@ -125,6 +125,7 @@ export const getInfoDialog = (dialogTitle, dialogDescription) => {
 };
 
 export const getLeftMessage = (message) => {
+  
   const messageContainer = document.createElement("div");
   messageContainer.classList.add("message_left_container");
   const messageParagraph = document.createElement("p");
