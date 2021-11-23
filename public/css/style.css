@@ -233,11 +233,6 @@ body {
   outline: none;
   color: #676f7a;
 }
-video{
-  transform: rotateY(180deg);
-  -webkit-transform:rotateY(180deg); /* Safari and Chrome */
-  -moz-transform:rotateY(180deg); 
-}
 
 .messages_container {
   flex-grow: 1;
