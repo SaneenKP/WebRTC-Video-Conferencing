@@ -1,0 +1,15 @@
+.main-container{
+
+    display: grid;
+    border: 1px solid red;
+    grid-template-columns: auto auto auto;
+}
+
+.message-container{
+
+    border: 1px solid green;
+}
+.video-container{
+
+    border: 1px solid blue;
+}

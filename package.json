@@ -1,0 +1,25 @@
+{
+  "name": "webrtc-video-conferencing",
+  "version": "1.0.0",
+  "description": "A Simple WebRTC Video Conferencing Application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon run app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saneenKP/WebRTC-Video-Conferencing.git"
+  },
+  "author": "Saneen K P",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/saneenKP/WebRTC-Video-Conferencing/issues"
+  },
+  "homepage": "https://github.com/saneenKP/WebRTC-Video-Conferencing#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "nodemon": "^2.0.15",
+    "socketio": "^1.0.0"
+  }
+}

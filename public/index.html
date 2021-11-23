@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/styles.css">
+    <title>Video Conferencing Application</title>
+</head>
+<body>
+
+    <div class="main-container">
+        <input type="text" id="personal_code_input">
+        <button id="personalCodeChatButton"></button>
+    </div>
+
+        <button id="personalCodeCopyButton"></button>
+        
+    <h1 id="personalCode"></h1>
+</body>
+<script src="./socket.io/socket.io.js" ></script>
+<script src="./js/main.js" type="module"></script>
+<script src="./js/store.js" type="module"></script>
+<script src="./js/wss.js" type="module"></script>
+<script src="./js/ui.js" type="module"></script>
+<!--<script src="./js/constants.js" type="module"></script>-->
+<script src="./js/webRTCHandler.js" type="module"></script>
+</html>
