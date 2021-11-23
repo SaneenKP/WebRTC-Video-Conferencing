@@ -8,6 +8,8 @@ import * as elements from './elements.js'
 const socket  = io('/')
 wss.registerSocketEvents(socket)
 
+webRTCHandler.getLocalPreview();
+
 //copy link to clipboard functionality
 const personalCodeCopyButton = document.getElementById('personal_code_copy_button')
 personalCodeCopyButton.addEventListener('click' , () => {

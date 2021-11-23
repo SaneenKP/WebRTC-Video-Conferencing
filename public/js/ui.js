@@ -8,6 +8,16 @@ export const updatePersonalCode = (personalCode) => {
   personalCodeParagraph.innerHTML = personalCode;
 };
 
+//setting local UI video stream
+export const updateLocalVideo = (stream) => {
+    const localVideo = document.getElementById('local_video')
+    localVideo.srcObject = stream
+
+    localVideo.addEventListener('loadedmetadata', ()=>{
+        localVideo.play();
+    })
+}
+
 export const showIncomingCallDialog = (
   callType,
   acceptCallHandler,

@@ -1,9 +1,27 @@
 import * as wss from "./wss.js";
 import * as constants from "./constants.js";
 import * as ui from "./ui.js";
+import * as store from './store.js'
 
+
+//WebRTC Handling
+const defaultConstrains = {
+    audio: true,
+    video: true,
+}
+export const getLocalPreview = () => {
+
+    navigator.mediaDevices.getUserMedia(defaultConstrains).then((stream) => {
+        
+        ui.updateLocalVideo(stream)
+        store.setLocalStream(stream)
+    }).catch((err) => {
+        console.log("webRTC Error = " + err);
+    })
+}
+
+//Socket IO Handling
 let connectedUserDetails;
-
 export const sendPreOffer = (callType, calleePersonalCode) => {
   connectedUserDetails = {
     callType,
