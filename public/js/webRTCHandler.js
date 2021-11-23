@@ -157,6 +157,7 @@ export const handlePreOfferAnswer = (data) => {
   }
 };
 
+//Caller Sending webRTC offer
 const sendWebRTCOffer = async () => {
 
     const offer = await peerConnection.createOffer();
@@ -168,8 +169,21 @@ const sendWebRTCOffer = async () => {
     })
 }
 
-export const handleWebRTCOffer = (data) => {
+//Callee  handling webRTC offer
+export const handleWebRTCOffer = async (data) => {
 
-    console.log("webRTC offer came");
-    console.log(data);
+    await peerConnection.setRemoteDescription(data.offer)
+    const answer =  await peerConnection.createAnswer()
+    await peerConnection.setLocalDescription(answer)
+    wss.sendDataUsingWebRTCSignaling({
+        connectedUserSocketId: connectedUserDetails.socketId,
+        type: constants.webRTCSignaling.answer,
+        answer: answer
+    })
+
+}
+
+export const handleWebRTCAnswer = async (data) =>{
+    console.log("handling webRTC answer");
+    await peerConnection.setRemoteDescription(data.answer)
 }
