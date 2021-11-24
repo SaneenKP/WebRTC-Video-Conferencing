@@ -116,3 +116,15 @@ stopRecordingButton.addEventListener('click' , ()=>{
     recordingUtils.stopRecording()
     ui.resetRecordingButtons()
 })
+
+//End call
+
+const hangUpButton = document.getElementById('hang_up_button')
+hangUpButton.addEventListener('click' , ()=>{
+    webRTCHandler.handleHangUp();
+})
+
+const hangUpChatButton = document.getElementById('finish_chat_call_button')
+hangUpChatButton.addEventListener('click' , ()=>{
+    webRTCHandler.handleHangUp();
+})

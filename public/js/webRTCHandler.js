@@ -233,7 +233,7 @@ export const switchBetweenCameraAndScreenSharing = async (
 
     const localStream = store.getState().localStream;
     const senders = connection.getSenders();
-    
+
     const sender = senders.find((sender) => {
       return sender.track.kind === localStream.getVideoTracks()[0].kind;
     });
@@ -284,3 +284,33 @@ export const switchBetweenCameraAndScreenSharing = async (
     }
   }
 };
+
+// End call Handler
+
+export const handleHangUp = () =>{
+    console.log("finishing the call");
+    const data= {
+        connectedUserSocketId : connectedUserDetails.socketId,
+    }
+    wss.sendUserHangedUp(data)
+}
+
+export const handleConnectedUserHangedUp = () =>{
+    closePeerConnectionAndResetState()
+}
+
+const closePeerConnectionAndResetState = () => {
+    if(connection){
+        connection.close()
+        connection = null
+    }
+
+    //active mic and camera
+    if(connectedUserDetails.callType === constants.callType.VIDEO_PERSONAL_CODE || connectedUserDetails.callType === constants.callType.VIDEO_STRANGER){
+        store.getState().localStream.getVideoTracks()[0].enabled = true
+        store.getState().localStream.getAudioTracks()[0].enabled = true
+    }
+        ui.updateUiAfterHangUp(connectedUserDetails.callType)
+        connectedUserDetails = null
+        location.reload()
+}

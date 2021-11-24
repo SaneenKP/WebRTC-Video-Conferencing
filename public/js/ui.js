@@ -185,9 +185,13 @@ export const appendMessage = (message , right = false) => {
     messagesContainer.appendChild(messageElement)
 }
 
-export const  clearMessenger = () => {
-    const messageContainer  = document.getElementById('message_container')
-    messageContainer.querySelector('*').forEach((n) =>{
+export const clearMessenger = () => {
+
+    const dialog = document.getElementById("dialog");
+    dialog.querySelectorAll("*").forEach((dialog) => dialog.remove());
+
+    const messageContainer  = document.getElementById('messages_container')
+    messageContainer.querySelectorAll('*').forEach((n) =>{
         n.remove()
     })
 }
@@ -210,3 +214,33 @@ export const resetRecordingButtons = () =>{
     showElement(startRecordingButton)
 }
 
+//ui after hangup
+export const updateUiAfterHangUp = (callType) => {
+    enableDashboard();
+
+    //hide Call Buttons
+
+    if(callType === constants.callType.VIDEO_PERSONAL_CODE || callType === constants.callType.VIDEO_STRANGER){
+        const callButtons = document.getElementById('call_buttons')
+        hideElement(callButtons)
+    }else{
+        const chatCallButtons = document.getElementById('finish_chat_button_container')
+        hideElement(chatCallButtons)
+    }
+    const newMessageInput = document.getElementById('new_message')
+    hideElement(newMessageInput)
+
+    clearMessenger();
+    updateMicButton(false)
+    updateCameraButton(false)
+    
+    //hide remote video and show placeholder
+
+    const remoteVideo = document.getElementById('remote_video')
+    hideElement(remoteVideo)
+
+    const placeholder = document.getElementById('video_placeholder')
+    showElement(placeholder)
+
+    removeAllDialogs();
+}
